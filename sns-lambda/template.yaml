@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: SNS -> Lambda
+
+Resources:
+  SnsSubscribedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.hello
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Events:
+        SNS1:
+          Type: SNS
+          Properties:
+            Topic:
+              Ref: SNSTopicLambdaSource
+
+  SNSTopicLambdaSource:
+    Type: 'AWS::SNS::Topic'
+
+Outputs:
+    LambdaArn:
+      Description: Lambda Arn
+      Value: !GetAtt SnsSubscribedFunction.Arn
+    SNSArn:
+      Description: SNS Topic Name
+      Value: !GetAtt SNSTopicLambdaSource.TopicName

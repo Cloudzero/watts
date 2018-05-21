@@ -9,6 +9,27 @@ PACKAGED_TEMPLATES := $(subst $(TEMPLATE_FILE),$(PACKAGED_TEMPLATE_FILE),$(TEMPL
 STACKS := $(subst /$(TEMPLATE_FILE),,$(TEMPLATES))
 
 
+cfn-deploy:
+	@[ -z $${stack_name} ] && { printf "MUST SET stack_name\n" ; exit 1 ; } || exit 0
+	@[ -z $${template_file} ] && { printf "MUST SET template_file\n" ; exit 1 ; } || exit 0
+	aws cloudformation deploy \
+		--template-file $${template_file} \
+		--stack-name $${stack_name} \
+    --capabilities CAPABILITY_IAM
+
+
+cfn-delete:
+	@[ -z $${stack_name} ] && { printf "MUST SET stack_name\n" ; exit 1 ; } || exit 0
+	@aws cloudformation delete-stack \
+		--stack-name $${stack_name}
+	@printf "Deleting stack $${stack_name} "
+	@while aws cloudformation describe-stacks --stack-name $${stack_name} &>/dev/null ; do \
+		printf "." ; \
+		sleep 1 ; \
+	done ; \
+	echo
+
+
 $(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE)
 	@aws cloudformation package \
 		--template-file $^ \
@@ -19,21 +40,9 @@ $(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE)
 .PHONY: $(STACKS)
 $(STACKS): % : %/$(PACKAGED_TEMPLATE_FILE)
 	@[ -z $${namespace} ] && { printf "MUST SET namespace\n" ; exit 1 ; } || exit 0
-	aws cloudformation deploy \
-		--template-file $^ \
-		--stack-name $@-$${namespace} \
-    --capabilities CAPABILITY_IAM
+	@make cfn-$${action:-deploy} stack_name=$@-$${namespace} template_file=$^
 
 
-smoke:
-	@while true ; do \
-		hi=`http --body GET https://oua80j51mb.execute-api.us-east-1.amazonaws.com/Stage/hello` ; \
-	  dt=`date "+%Y-%m-%d %H:%M:%S"` ; \
-		printf "$${dt}: $${hi} " ; \
-		for i in {1..30} ; do \
-			printf "." ; \
-	    sleep 1 ; \
-		done ; \
-		echo ; \
-	done
+
+
 
