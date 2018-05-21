@@ -40,18 +40,9 @@ $(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE)
 .PHONY: $(STACKS)
 $(STACKS): % : %/$(PACKAGED_TEMPLATE_FILE)
 	@[ -z $${namespace} ] && { printf "MUST SET namespace\n" ; exit 1 ; } || exit 0
-	@make cfn-$${action:-default} stack_name=$@-$${namespace} template_file=$^
+	@make cfn-$${action:-deploy} stack_name=$@-$${namespace} template_file=$^
 
 
-smoke:
-	@while true ; do \
-		hi=`http --body GET https://oua80j51mb.execute-api.us-east-1.amazonaws.com/Stage/hello` ; \
-	  dt=`date "+%Y-%m-%d %H:%M:%S"` ; \
-		printf "$${dt}: $${hi} " ; \
-		for i in {1..30} ; do \
-			printf "." ; \
-	    sleep 1 ; \
-		done ; \
-		echo ; \
-	done
+
+
 

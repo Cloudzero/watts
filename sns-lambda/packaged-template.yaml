@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: SNS -> Lambda
+Outputs:
+  LambdaArn:
+    Description: Lambda Arn
+    Value:
+      Fn::GetAtt:
+      - SnsSubscribedFunction
+      - Arn
+  SNSArn:
+    Description: SNS Topic Name
+    Value:
+      Fn::GetAtt:
+      - SNSTopicLambdaSource
+      - TopicName
+Resources:
+  SNSTopicLambdaSource:
+    Type: AWS::SNS::Topic
+  SnsSubscribedFunction:
+    Properties:
+      CodeUri: s3://cz-sam-deployment-research/cd3887e4f0a7783aa7f88ed28860de43
+      Events:
+        SNS1:
+          Properties:
+            Topic:
+              Ref: SNSTopicLambdaSource
+          Type: SNS
+      Handler: handler.hello
+      Runtime: nodejs8.10
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
