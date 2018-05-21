@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: APIG -> Lambda
+Outputs:
+  ApiURL:
+    Description: API endpoint URL
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/hello
+Resources:
+  HelloFunction:
+    Properties:
+      CodeUri: s3://cz-sam-deployment-research/99917deefd786623e4fdd09954771359
+      Events:
+        GetResource:
+          Properties:
+            Method: get
+            Path: /hello
+          Type: Api
+      Handler: handler.hello
+      Runtime: nodejs8.10
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
