@@ -31,6 +31,12 @@ cfn-delete:
 	echo
 
 
+cfn-describe:
+	@[ -z $${stack_name} ] && { printf "MUST SET stack_name\n" ; exit 1 ; } || exit 0
+	@aws cloudformation describe-stacks \
+		--stack-name $${stack_name}
+
+
 $(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE)
 	@aws cloudformation package \
 		--template-file $^ \
