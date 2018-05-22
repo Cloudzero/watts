@@ -1,12 +1,14 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-while true ; do \
-  hi=`http --body GET https://oua80j51mb.execute-api.us-east-1.amazonaws.com/Stage/hello`
-  dt=`date "+%Y-%m-%d %H:%M:%S"`
-	printf "$${dt}: $${hi} "
-	for i in {1..30} ; do
-	  printf "."
-	  sleep 1
-	done
-	echo
+set -e
+declare -r temp_log=temp.log
+sam local start-api --template apig-lambda/template.yaml &> ${temp_log} &
+
+printf "Waiting on API "
+while grep -vq 'Running on' temp.log ; do
+  sleep 1 ; printf "."
 done
+echo
+
+http GET http://127.0.0.1:3000/hello
+rm ${temp_log}
