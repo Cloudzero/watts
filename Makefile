@@ -10,6 +10,15 @@ PACKAGED_TEMPLATES := $(subst $(TEMPLATE_FILE),$(PACKAGED_TEMPLATE_FILE),$(TEMPL
 STACKS := $(subst /$(TEMPLATE_FILE),,$(TEMPLATES))
 
 
+init:                                    ## ensures all dev dependencies into the current virtualenv
+	@if [[ "$$VIRTUAL_ENV" = "" ]] ; then \
+		printf "$(WARN_COLOR)WARN:$(NO_COLOR) No virtualenv found, will not install dependencies globally." ; \
+		exit 1 ; \
+	fi
+	@pip install -r requirements-dev.txt
+	@alias sam="$VIRTUAL_ENV/bin/sam"
+
+
 cfn-deploy:
 	@[ -z $${stack_name} ] && { printf "MUST SET stack_name\n" ; exit 1 ; } || exit 0
 	@[ -z $${template_file} ] && { printf "MUST SET template_file\n" ; exit 1 ; } || exit 0
