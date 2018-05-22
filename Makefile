@@ -4,6 +4,7 @@ PACKAGED_TEMPLATE_FILE = packaged-template.yaml
 DEPLOYMENT_BUCKET = cz-sam-deployment-research
 
 
+SRC_FILES := $(shell find . -name "*.js")
 TEMPLATES := $(shell find . -name $(TEMPLATE_FILE))
 PACKAGED_TEMPLATES := $(subst $(TEMPLATE_FILE),$(PACKAGED_TEMPLATE_FILE),$(TEMPLATES))
 STACKS := $(subst /$(TEMPLATE_FILE),,$(TEMPLATES))
