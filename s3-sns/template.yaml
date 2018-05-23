@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: SNS -> Lambda
+
+Resources:
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      NotificationConfiguration:
+        TopicConfigurations:
+        - Topic: arn:aws:sns:us-east-1:975482786146:s3-sns-live-SNSTopicS3Destination-HZNL1VC04TN7
+          Event: s3:ObjectCreated:*
+
+  SNSTopicS3Destination:
+    Type: AWS::SNS::Topic
+
+  SNSTopicS3DestinationPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: SNSTopicS3DestinationPolicy
+        Version: 2012-10-17
+        Statement:
+        - Sid: AllowS3ToPut
+          Effect: Allow
+          Principal:
+            Service:
+              - s3.amazonaws.com
+          Action: sns:Publish
+          Resource: "*"
+      Topics:
+      - !Ref SNSTopicS3Destination
+
+Outputs:
+    BucketArn:
+      Description: Bucket Arn
+      Value: !GetAtt SourceBucket.Arn
+    SNSArn:
+      Description: SNS Topic Arn
+      Value:     
+        !Sub
+          - arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${TopicName}
+          - { TopicName: !GetAtt SNSTopicS3Destination.TopicName }
+
