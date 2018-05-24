@@ -4,7 +4,6 @@ PACKAGED_TEMPLATE_FILE = packaged-template.yaml
 DEPLOYMENT_BUCKET = cz-sam-deployment-research
 
 
-SRC_FILES := $(shell find . -name "*.js")
 TEMPLATES := $(shell find . -name $(TEMPLATE_FILE))
 PACKAGED_TEMPLATES := $(subst $(TEMPLATE_FILE),$(PACKAGED_TEMPLATE_FILE),$(TEMPLATES))
 STACKS := $(subst /$(TEMPLATE_FILE),,$(TEMPLATES))
@@ -54,11 +53,8 @@ $(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE)
 
 
 .PHONY: $(STACKS)
-$(STACKS): % : %/$(PACKAGED_TEMPLATE_FILE)
+.SECONDEXPANSION:
+$(STACKS): % : %/$(PACKAGED_TEMPLATE_FILE) $$(shell find $$* -name "*.js")
 	@[ -z $${namespace} ] && { printf "MUST SET namespace\n" ; exit 1 ; } || exit 0
 	@make cfn-$${action:-deploy} stack_name=$@-$${namespace} template_file=$^
-
-
-
-
 
