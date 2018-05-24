@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda -> DynamoDB
+
+
+Resources:
+  PublishFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.publish
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies: AmazonSNSFullAccess
+      Environment:
+        Variables:
+          TOPIC_ARN:
+            !Sub
+              - arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${TopicName}
+              - { TopicName: !GetAtt SNSTopicLambdaDestination.TopicName }
+
+  SNSTopicLambdaDestination:
+    Type: AWS::SNS::Topic
+
+Outputs:
+    PublishFunctionArn:
+      Description: Publish Function Arn
+      Value: !GetAtt PublishFunction.Arn
+    SNSTopicArn:
+      Description: SNS Topic Arn
+      Value:     
+        !Sub
+          - arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${TopicName}
+          - { TopicName: !GetAtt SNSTopicLambdaDestination.TopicName }
+
