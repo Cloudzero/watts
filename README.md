@@ -24,7 +24,7 @@ make namespace=test action=describe lambda-s3
 Delete a stack via `make` by specifying the `action=delete`, again using the directory name as the target, e.g.
 
 ```
-make namespace=test action=describe lambda-s3
+make namespace=test action=delete lambda-s3
 ```
 
 
