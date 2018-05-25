@@ -2,7 +2,6 @@
 TEMPLATE_FILE = template.yaml
 PACKAGED_TEMPLATE_FILE = packaged-template.yaml
 DEPLOYMENT_BUCKET = cz-sam-deployment-research
-SRC_FILE := index.js
 
 TEMPLATES := $(shell find . -name $(TEMPLATE_FILE))
 PACKAGED_TEMPLATES := $(subst $(TEMPLATE_FILE),$(PACKAGED_TEMPLATE_FILE),$(TEMPLATES))
