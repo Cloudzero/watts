@@ -87,9 +87,30 @@ Outputs:
   PrivateSubnetAId:
     Description: Private Subnet A ID
     Value: !Ref PrivateSubnetA
+    Export:
+      Name: !Sub ${AWS::StackName}:PrivateSubnetAId
   PublicSubnetAId:
     Description: Public Subnet A ID
     Value: !Ref PublicSubnetA
+    Export:
+      Name: !Sub ${AWS::StackName}:PublicSubnetAId
+  PrivateRouteTable:
+    Description: Private Route Table Ref
+    Value: !Ref PrivateRouteTable
+    Export:
+      Name: !Sub ${AWS::StackName}::PrivateRouteTable
+  PublicRouteTable:
+    Description: Public Route Table Ref
+    Value: !Ref PublicRouteTable
+    Export:
+      Name: !Sub ${AWS::StackName}::PublicRouteTable
+  VPC:
+    Description: VPC Ref
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${AWS::StackName}:VPC
   VPCDefaultSecurityGroupId:
     Description: VPC Default Security Group ID
     Value: !GetAtt VPC.DefaultSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}:DefaultSecurityGroupId
