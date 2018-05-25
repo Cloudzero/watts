@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: VPC
+
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    DependsOn:
+      - VPC
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.10.0/24
+      VpcId: !Ref VPC
+
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    DependsOn:
+      - VPC
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.20.0/24
+      VpcId: !Ref VPC
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn:
+      - VPC
+    Properties:
+      VpcId: !Ref VPC
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn:
+      - VPC
+    Properties:
+      VpcId: !Ref VPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn:
+      - VPC
+      - InternetGateway
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  InternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - InternetGateway
+      - PublicRouteTable
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetARouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PublicSubnetA
+      - PublicRouteTable
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateSubnetARouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PrivateSubnetA
+      - PrivateRouteTable
+    Properties:
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref PrivateRouteTable
+
+Outputs:
+  PrivateSubnetAId:
+    Description: Private Subnet A ID
+    Value: !Ref PrivateSubnetA
+    Export:
+      Name: !Sub ${AWS::StackName}:PrivateSubnetAId
+  PublicSubnetAId:
+    Description: Public Subnet A ID
+    Value: !Ref PublicSubnetA
+    Export:
+      Name: !Sub ${AWS::StackName}:PublicSubnetAId
+  PrivateRouteTable:
+    Description: Private Route Table Ref
+    Value: !Ref PrivateRouteTable
+    Export:
+      Name: !Sub ${AWS::StackName}::PrivateRouteTable
+  PublicRouteTable:
+    Description: Public Route Table Ref
+    Value: !Ref PublicRouteTable
+    Export:
+      Name: !Sub ${AWS::StackName}::PublicRouteTable
+  VPC:
+    Description: VPC Ref
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${AWS::StackName}:VPC
+  VPCDefaultSecurityGroupId:
+    Description: VPC Default Security Group ID
+    Value: !GetAtt VPC.DefaultSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}:DefaultSecurityGroupId
