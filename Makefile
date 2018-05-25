@@ -3,7 +3,6 @@ TEMPLATE_FILE = template.yaml
 PACKAGED_TEMPLATE_FILE = packaged-template.yaml
 DEPLOYMENT_BUCKET = cz-sam-deployment-research
 
-
 TEMPLATES := $(shell find . -name $(TEMPLATE_FILE))
 PACKAGED_TEMPLATES := $(subst $(TEMPLATE_FILE),$(PACKAGED_TEMPLATE_FILE),$(TEMPLATES))
 STACKS := $(subst /$(TEMPLATE_FILE),,$(TEMPLATES))
@@ -45,16 +44,15 @@ cfn-describe:
 		--stack-name $${stack_name}
 
 
-$(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE)
+.SECONDEXPANSION:
+$(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE) $$(shell find $$* -name "*.js")
 	@aws cloudformation package \
-		--template-file $^ \
-    --output-template-file $@ \
+		--template-file $< \
+		--output-template-file $@ \
 		--s3-bucket $(DEPLOYMENT_BUCKET)
 
 
 .PHONY: $(STACKS)
-.SECONDEXPANSION:
-$(STACKS): % : %/$(PACKAGED_TEMPLATE_FILE) $$(shell find $$* -name "*.js")
+$(STACKS): % : %/$(PACKAGED_TEMPLATE_FILE)
 	@[ -z $${namespace} ] && { printf "MUST SET namespace\n" ; exit 1 ; } || exit 0
 	@make cfn-$${action:-deploy} stack_name=$@-$${namespace} template_file=$^
-
