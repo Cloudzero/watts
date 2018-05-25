@@ -46,10 +46,10 @@ cfn-describe:
 
 
 .SECONDEXPANSION:
-$(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE) %/index.js
+$(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE) $$(shell find $$* -name "*.js")
 	@aws cloudformation package \
 		--template-file $< \
-    --output-template-file $@ \
+		--output-template-file $@ \
 		--s3-bucket $(DEPLOYMENT_BUCKET)
 
 
