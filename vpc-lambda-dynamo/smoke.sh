@@ -21,18 +21,19 @@ get_function_arn=$(make namespace=live action=describe vpc-lambda-dynamo |
 : ${get_function_arn?}
 
 declare -i i=0
-while (( ${i} < 10 )) ; do
+declare -ir N=1
+while (( ${i} < ${N} )) ; do
     id=`date +%s`.${i}
     aws lambda invoke --function-name ${put_function_arn} \
         --invocation-type RequestResponse \
         --payload "{\"body\": {\"id\": \"${id}\", \"data\": \"sam local\"}}" \
         put.out
 
-    aws lambda invoke --function-name ${get_function_arn} \
-        --invocation-type RequestResponse \
-        --payload "{\"body\": {\"id\": \"${id}\", \"data\": \"sam local\"}}" \
-        get.out
-    i=$$( i + 1 )
+    # aws lambda invoke --function-name ${get_function_arn} \
+    #     --invocation-type RequestResponse \
+    #     --payload "{\"body\": {\"id\": \"${id}\", \"data\": \"sam local\"}}" \
+    #     get.out
+    i=$(( i + 1 ))
 done
 
 
