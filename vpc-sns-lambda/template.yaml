@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: VPC SNS -> Lambda
+
+Resources:
+  SnsSubscribedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.hello
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+      Events:
+        SNS1:
+          Type: SNS
+          Properties:
+            Topic:
+              Ref: SNSTopicLambdaSource
+      VpcConfig:
+        SecurityGroupIds:
+          - !ImportValue vpc-live:DefaultSecurityGroupId
+        SubnetIds:
+          - !ImportValue vpc-live:PrivateSubnetAId
+
+  SNSTopicLambdaSource:
+    Type: AWS::SNS::Topic
+
+Outputs:
+    LambdaArn:
+      Description: Lambda Arn
+      Value: !GetAtt SnsSubscribedFunction.Arn
+    SNSTopicName:
+      Description: SNS Topic Name
+      Value: !GetAtt SNSTopicLambdaSource.TopicName
+    SNSTopicArn:
+      Description: SNS Topic Arn
+      Value: !Sub ${SNSTopicLambdaSource}
