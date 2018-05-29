@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: VPC Lambda -> DynamoDB
+
+
+Resources:
+  PublishFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.publish
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies:
+        - AmazonSNSFullAccess
+        - AWSLambdaVPCAccessExecutionRole
+      Environment:
+        Variables:
+          TOPIC_ARN: !Sub ${SNSTopicLambdaDestination}
+      VpcConfig:
+        SecurityGroupIds:
+          - !ImportValue vpc-live:DefaultSecurityGroupId
+        SubnetIds:
+          - !ImportValue vpc-live:PrivateSubnetAId
+
+  SNSTopicLambdaDestination:
+    Type: AWS::SNS::Topic
+
+  # This doesn't work for "Interface" VPC Endpoints ... only the CLI?
+  # SNSEndpoint:
+  #    Type: "AWS::EC2::VPCEndpoint"
+  #    Properties:
+  #      ServiceName: !Sub com.amazonaws.${AWS::Region}.sns
+  #      VpcEndpointType: Interface
+  #      VpcId: !ImportValue vpc-live:VPC
+
+
+Outputs:
+    PublishFunctionArn:
+      Description: Publish Function Arn
+      Value: !GetAtt PublishFunction.Arn
+    SNSTopicArn:
+      Description: SNS Topic Arn
+      Value:  !Sub ${SNSTopicLambdaDestination}
+    # SNSEndpoint:
+    #   Description: SNS VPC Endpoint
+    #   Value: !Ref SNSEndpoint
+
