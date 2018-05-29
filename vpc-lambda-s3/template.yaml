@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: VPC Lambda -> DynamoDB
+
+
+Resources:
+  PutObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.putObject
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaVPCAccessExecutionRole
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref DestinationBucket
+      VpcConfig:
+        SecurityGroupIds:
+          - !ImportValue vpc-live:DefaultSecurityGroupId
+        SubnetIds:
+          - !ImportValue vpc-live:PrivateSubnetAId
+
+  DestinationBucket:
+    Type: AWS::S3::Bucket
+
+  S3Endpoint:
+     Type: AWS::EC2::VPCEndpoint
+     Properties:
+       RouteTableIds:
+         - !ImportValue vpc-live::PrivateRouteTable
+         - !ImportValue vpc-live::PublicRouteTable
+       ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+       VpcId: !ImportValue vpc-live:VPC
+
+
+Outputs:
+  PutObjectFunction:
+    Description: Put Object Function
+    Value: !GetAtt PutObjectFunction.Arn
+  DestinationBucket:
+    Description: Destination Bucket Arn
+    Value: !GetAtt DestinationBucket.Arn
+  DestinationBucketName:
+    Description: Destination Bucket Name
+    Value: !Ref DestinationBucket
+  S3EndpointOutput:
+    Description: DynamoDB VPC Endpoint
+    Value: !Ref S3Endpoint

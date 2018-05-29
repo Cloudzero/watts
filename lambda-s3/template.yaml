@@ -13,17 +13,19 @@ Resources:
       Policies: AmazonS3FullAccess
       Environment:
         Variables:
-          BUCKET_NAME:
-            !Select [5, !Split [":", !GetAtt DestinationBucket.Arn]]
+          BUCKET_NAME: !Ref DestinationBucket
 
   DestinationBucket:
     Type: AWS::S3::Bucket
 
 
 Outputs:
-    PutObjectFunction:
-      Description: Put Object Function
-      Value: !GetAtt PutObjectFunction.Arn
-    DestinationBucket:
-      Description: Destination Bucket Arn
-      Value: !GetAtt DestinationBucket.Arn
+  PutObjectFunction:
+    Description: Put Object Function
+    Value: !GetAtt PutObjectFunction.Arn
+  DestinationBucket:
+    Description: Destination Bucket Arn
+    Value: !GetAtt DestinationBucket.Arn
+  DestinationBucketName:
+    Description: Destination Bucket Name
+    Value: !Ref DestinationBucket
