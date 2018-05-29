@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: VPC APIG -> Lambda
+
+Resources:
+  HelloFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.hello
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
+      VpcConfig:
+        SecurityGroupIds:
+          - !ImportValue vpc-live:DefaultSecurityGroupId
+        SubnetIds:
+          - !ImportValue vpc-live:PrivateSubnetAId
+
+Outputs:
+    ApiURL:
+      Description: "API endpoint URL"
+      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/hello"
+
