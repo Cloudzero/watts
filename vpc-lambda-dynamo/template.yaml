@@ -53,13 +53,15 @@ Resources:
        VpcId: !ImportValue vpc-live:VPC
 
 Outputs:
-    GetFunctionArn:
-      Description: Get Function Arn
-      Value: !GetAtt GetFunction.Arn
-    PutFunctionArn:
-      Description: Put Function Arn
-      Value: !GetAtt PutFunction.Arn
-    TableArn:
-      Description: Table Arn
-      Value: !GetAtt Table.Arn
-
+  GetFunctionArn:
+    Description: Get Function Arn
+    Value: !GetAtt GetFunction.Arn
+  PutFunctionArn:
+    Description: Put Function Arn
+    Value: !GetAtt PutFunction.Arn
+  TableArn:
+    Description: Table Arn
+    Value: !GetAtt Table.Arn
+  DynamoDBEndpointOutput:
+    Description: DynamoDB VPC Endpoint
+    Value: !Ref DynamoDBEndpoint
