@@ -104,6 +104,9 @@ Outputs:
     Value: !Ref PublicRouteTable
     Export:
       Name: !Sub ${AWS::StackName}::PublicRouteTable
+  VpcRegion:
+    Description: Vpc Region
+    Value: !Sub ${AWS::Region}
   VPC:
     Description: VPC Ref
     Value: !Ref VPC
