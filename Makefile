@@ -23,7 +23,7 @@ cfn-deploy:
 	aws cloudformation deploy \
 		--template-file $${template_file} \
 		--stack-name $${stack_name} \
-    --capabilities CAPABILITY_IAM \
+		--capabilities CAPABILITY_IAM \
 		--parameter-overrides \
 			Namespace=${namespace}
 
