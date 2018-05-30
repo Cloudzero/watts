@@ -2,6 +2,13 @@ AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: SNS -> Lambda
 
+
+Parameters:
+  Namespace:
+    Type: String
+    Default: live
+    Description: Globally unique grouping identifier.
+
 Resources:
 
   SNSTopicS3Destination:
@@ -33,6 +40,16 @@ Resources:
             Resource: "*"
       Topics:
         - !Ref SNSTopicS3Destination
+
+  S3Endpoint:
+     Type: AWS::EC2::VPCEndpoint
+     Properties:
+       RouteTableIds:
+         - Fn::ImportValue: !Sub vpc-${Namespace}::PrivateRouteTable
+         - Fn::ImportValue: !Sub vpc-${Namespace}::PublicRouteTable
+       ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+       VpcId:
+         Fn::ImportValue: !Sub vpc-${Namespace}:VPC
 
 Outputs:
     BucketArn:
