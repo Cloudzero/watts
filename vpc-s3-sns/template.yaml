@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: SNS -> Lambda
+
+
+Parameters:
+  Namespace:
+    Type: String
+    Default: live
+    Description: Globally unique grouping identifier.
+
+Resources:
+
+  SNSTopicS3Destination:
+    Type: AWS::SNS::Topic
+
+  SourceBucket:
+    DependsOn:
+      - SNSTopicS3Destination
+    Type: AWS::S3::Bucket
+    Properties:
+      NotificationConfiguration:
+        TopicConfigurations:
+          - Topic: !Sub ${SNSTopicS3Destination}
+            Event: s3:ObjectCreated:*
+
+  SNSTopicS3DestinationPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: SNSTopicS3DestinationPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowS3ToPut
+            Effect: Allow
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action: sns:Publish
+            Resource: "*"
+      Topics:
+        - !Ref SNSTopicS3Destination
+
+  S3Endpoint:
+     Type: AWS::EC2::VPCEndpoint
+     Properties:
+       RouteTableIds:
+         - Fn::ImportValue: !Sub vpc-${Namespace}::PrivateRouteTable
+         - Fn::ImportValue: !Sub vpc-${Namespace}::PublicRouteTable
+       ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+       VpcId:
+         Fn::ImportValue: !Sub vpc-${Namespace}:VPC
+
+Outputs:
+    BucketArn:
+      Description: Bucket Arn
+      Value: !GetAtt SourceBucket.Arn
+    SNSArn:
+      Description: SNS Topic Arn
+      Value: !Sub ${SNSTopicS3Destination}
+
