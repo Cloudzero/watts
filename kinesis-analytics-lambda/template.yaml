@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Kinesis -> Lambda
+
+Resources:
+  AnalyticsProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.analyticsHandler
+      Runtime: nodejs8.10
+      CodeUri: ./
+
+  StreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.kinesisHandler
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Events:
+        Stream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt Stream.Arn
+            StartingPosition: TRIM_HORIZON
+
+  Stream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 1
+
+
+  KinesisAnalyticsApplication:
+    Type: AWS::KinesisAnalytics::Application
+    Properties:
+      ApplicationName: kinesis-application
+      ApplicationDescription: Example Kinesis Application
+      ApplicationCode: |
+        CREATE OR REPLACE STREAM "DESTINATION_SQL_STREAM" ("subject" VARCHAR(128),
+                                                           "predicate" VARCHAR(128),
+                                                           "object" VARCHAR(128),
+                                                           "COL_timestamp" BIGINT);
+        -- Create a pump and insert into output stream.
+        CREATE OR REPLACE PUMP "STREAM_PUMP" AS 
+          INSERT INTO "DESTINATION_SQL_STREAM" 
+            SELECT STREAM "subject", "predicate", "object", "COL_timestamp"
+            FROM "SOURCE_SQL_STREAM_001";
+      Inputs:
+        - NamePrefix: SOURCE_SQL_STREAM
+          InputSchema:
+            RecordColumns:
+            - SqlType: VARCHAR(128)
+              Name: subject
+              Mapping: "$.subject"
+            - SqlType: VARCHAR(128)
+              Name: predicate
+              Mapping: "$.predicate"
+            - SqlType: VARCHAR(128)
+              Name: object
+              Mapping: "$.object"
+            - SqlType: BIGINT
+              Name: COL_timestamp
+              Mapping: "$.timestamp"
+            RecordFormat:
+              MappingParameters:
+                JSONMappingParameters:
+                  RecordRowPath: "$"
+              RecordFormatType: JSON
+            RecordEncoding: UTF-8
+          KinesisStreamsInput:
+            ResourceARN: !GetAtt Stream.Arn
+            RoleARN: !GetAtt KinesisAnalyticsRole.Arn
+
+
+  KinesisAnalyticsApplicationOutput:
+    Type: AWS::KinesisAnalytics::ApplicationOutput
+    DependsOn:
+      - KinesisAnalyticsApplication
+      - AnalyticsProcessor
+    Properties:
+      ApplicationName: !Ref KinesisAnalyticsApplication
+      Output:
+        DestinationSchema:
+          RecordFormatType: JSON
+        LambdaOutput:
+          ResourceARN: !GetAtt AnalyticsProcessor.Arn
+          RoleARN: !GetAtt KinesisAnalyticsRole.Arn
+        Name : DESTINATION_SQL_STREAM
+
+  KinesisAnalyticsApplicationError:
+    Type: AWS::KinesisAnalytics::ApplicationOutput
+    DependsOn: 
+      - KinesisAnalyticsApplication
+      - AnalyticsProcessor
+    Properties:
+      ApplicationName: !Ref KinesisAnalyticsApplication
+      Output:
+        DestinationSchema:
+          RecordFormatType: JSON
+        LambdaOutput:
+          ResourceARN: !GetAtt AnalyticsProcessor.Arn
+          RoleARN: !GetAtt KinesisAnalyticsRole.Arn
+        Name : error_stream
+
+  KinesisAnalyticsRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: kinesisanalytics.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: Open
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "kinesis:DescribeStream"
+                  - "kinesis:GetShardIterator"
+                  - "kinesis:GetRecords"
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "kinesis:DescribeStream"
+                  - "kinesis:PutRecord"
+                  - "kinesis:PutRecords"
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                  - "lambda:GetFunctionConfiguration"
+                Resource: "*"
+
+Outputs:
+  KinesisAnalyticsApplication:
+    Description: Kinesis Analytics Application Name
+    Value: !Ref KinesisAnalyticsApplication
+  KinesisAnalyticsApplicationOutput:
+    Description: Kinesis Analytics Application Output
+    Value: !Ref KinesisAnalyticsApplicationOutput
+  KinesisAnalyticsRoleArn:
+    Description: Kinesis Analytics Role
+    Value: !GetAtt KinesisAnalyticsRole.Arn
+  AnalyticsProcessorArn:
+    Description: Analytics Processor Arn
+    Value: !GetAtt AnalyticsProcessor.Arn
+  StreamProcessorArn:
+    Description: Stream Processor Arn
+    Value: !GetAtt StreamProcessor.Arn
+  KinesisStreamArn:
+    Description: Kinesis Stream Arn
+    Value: !GetAtt Stream.Arn

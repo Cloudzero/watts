@@ -33,11 +33,14 @@ cfn-delete:
 	@aws cloudformation delete-stack \
 		--stack-name $${stack_name}
 	@printf "Deleting stack $${stack_name} "
-	@while aws cloudformation describe-stacks --stack-name $${stack_name} &>/dev/null ; do \
+	@while aws cloudformation describe-stacks --stack-name $${stack_name} 2>/dev/null | grep -q IN_PROGRESS ; do \
 		printf "." ; \
 		sleep 1 ; \
 	done ; \
 	echo
+	@aws cloudformation list-stacks | \
+		jq -re --arg stackName $${stack_name} \
+			'.StackSummaries | map(select(.StackName == $$stackName)) | .[0] | [.StackStatus, .StackStatusReason] | join(" ")'
 
 
 cfn-describe:
