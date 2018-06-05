@@ -3,17 +3,17 @@ Transform: AWS::Serverless-2016-10-31
 Description: Kinesis -> Lambda
 
 Resources:
-  StreamProcessor:
+  AnalyticsProcessor:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.handler
+      Handler: index.analyticsHandler
       Runtime: nodejs8.10
       CodeUri: ./
 
-  StreamChecker:
+  StreamProcessor:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.handler
+      Handler: index.kinesisHandler
       Runtime: nodejs8.10
       CodeUri: ./
       Events:
@@ -73,27 +73,31 @@ Resources:
 
   KinesisAnalyticsApplicationOutput:
     Type: AWS::KinesisAnalytics::ApplicationOutput
-    DependsOn: KinesisAnalyticsApplication
+    DependsOn:
+      - KinesisAnalyticsApplication
+      - AnalyticsProcessor
     Properties:
       ApplicationName: !Ref KinesisAnalyticsApplication
       Output:
         DestinationSchema:
           RecordFormatType: JSON
         LambdaOutput:
-          ResourceARN: !GetAtt StreamProcessor.Arn
+          ResourceARN: !GetAtt AnalyticsProcessor.Arn
           RoleARN: !GetAtt KinesisAnalyticsRole.Arn
         Name : DESTINATION_SQL_STREAM
 
   KinesisAnalyticsApplicationError:
     Type: AWS::KinesisAnalytics::ApplicationOutput
-    DependsOn: KinesisAnalyticsApplication
+    DependsOn: 
+      - KinesisAnalyticsApplication
+      - AnalyticsProcessor
     Properties:
       ApplicationName: !Ref KinesisAnalyticsApplication
       Output:
         DestinationSchema:
           RecordFormatType: JSON
         LambdaOutput:
-          ResourceARN: !GetAtt StreamProcessor.Arn
+          ResourceARN: !GetAtt AnalyticsProcessor.Arn
           RoleARN: !GetAtt KinesisAnalyticsRole.Arn
         Name : error_stream
 
@@ -145,9 +149,9 @@ Outputs:
   KinesisAnalyticsRoleArn:
     Description: Kinesis Analytics Role
     Value: !GetAtt KinesisAnalyticsRole.Arn
-  StreamCheckerArn:
-    Description: Stream Checker Arn
-    Value: !GetAtt StreamChecker.Arn
+  AnalyticsProcessorArn:
+    Description: Analytics Processor Arn
+    Value: !GetAtt AnalyticsProcessor.Arn
   StreamProcessorArn:
     Description: Stream Processor Arn
     Value: !GetAtt StreamProcessor.Arn
