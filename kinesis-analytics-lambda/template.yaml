@@ -35,15 +35,17 @@ Resources:
       ApplicationName: kinesis-application
       ApplicationDescription: Example Kinesis Application
       ApplicationCode: |
+        -- Create destination output stream
         CREATE OR REPLACE STREAM "DESTINATION_SQL_STREAM" ("subject" VARCHAR(128),
                                                            "predicate" VARCHAR(128),
                                                            "object" VARCHAR(128),
                                                            "COL_timestamp" BIGINT);
-        -- Create a pump and insert into output stream.
-        CREATE OR REPLACE PUMP "STREAM_PUMP" AS 
-          INSERT INTO "DESTINATION_SQL_STREAM" 
-            SELECT STREAM "subject", "predicate", "object", "COL_timestamp"
-            FROM "SOURCE_SQL_STREAM_001";
+
+        -- Create a pump and insert into destination output stream
+        CREATE OR REPLACE PUMP "STREAM_PUMP" AS INSERT INTO "DESTINATION_SQL_STREAM" 
+        SELECT STREAM "subject", "predicate", "object", "COL_timestamp"
+        FROM "SOURCE_SQL_STREAM_001"
+        WINDOW ONE_HOUR_SLIDING_WINDOW AS (RANGE INTERVAL '1' HOUR PRECEDING);
       Inputs:
         - NamePrefix: SOURCE_SQL_STREAM
           InputSchema:
