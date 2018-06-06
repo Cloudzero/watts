@@ -35,6 +35,30 @@ Resources:
       ApplicationName: kinesis-application
       ApplicationDescription: Example Kinesis Application
       ApplicationCode: |
+        -- Create intermediate stream 1
+        CREATE OR REPLACE STREAM "IN_APP_STREAM_001" ("subject" VARCHAR(128),
+                                                      "predicate" VARCHAR(128),
+                                                      "object" VARCHAR(128),
+                                                      "COL_timestamp" BIGINT);
+
+        -- Create a pump and insert into intermediate stream 1: src -> sliding window
+        CREATE OR REPLACE PUMP "STREAM_PUMP_001" AS INSERT INTO "IN_APP_STREAM_001" 
+        SELECT STREAM "subject", "predicate", "object", "COL_timestamp"
+        FROM "SOURCE_SQL_STREAM_001"
+        WINDOW ONE_HOUR_SLIDING_WINDOW AS (RANGE INTERVAL '1' HOUR PRECEDING);
+
+        -- Create intermediate stream 2
+        CREATE OR REPLACE STREAM "IN_APP_STREAM_002" ("subject" VARCHAR(128),
+                                                      "predicate" VARCHAR(128),
+                                                      "object" VARCHAR(128),
+                                                      "COL_timestamp" BIGINT);
+
+        -- Create a pump and insert into intermediate stream 1: src -> sliding window
+        CREATE OR REPLACE PUMP "STREAM_PUMP_002" AS INSERT INTO "IN_APP_STREAM_002" 
+        SELECT STREAM "subject", "predicate", "object", "COL_timestamp"
+        FROM "IN_APP_STREAM_001";
+
+
         -- Create destination output stream
         CREATE OR REPLACE STREAM "DESTINATION_SQL_STREAM" ("subject" VARCHAR(128),
                                                            "predicate" VARCHAR(128),
@@ -42,10 +66,9 @@ Resources:
                                                            "COL_timestamp" BIGINT);
 
         -- Create a pump and insert into destination output stream
-        CREATE OR REPLACE PUMP "STREAM_PUMP" AS INSERT INTO "DESTINATION_SQL_STREAM" 
+        CREATE OR REPLACE PUMP "STREAM_PUMP_003" AS INSERT INTO "DESTINATION_SQL_STREAM" 
         SELECT STREAM "subject", "predicate", "object", "COL_timestamp"
-        FROM "SOURCE_SQL_STREAM_001"
-        WINDOW ONE_HOUR_SLIDING_WINDOW AS (RANGE INTERVAL '1' HOUR PRECEDING);
+        FROM "IN_APP_STREAM_002";
       Inputs:
         - NamePrefix: SOURCE_SQL_STREAM
           InputSchema:
