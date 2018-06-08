@@ -51,15 +51,14 @@ cfn-describe:
 
 
 .SECONDEXPANSION:
-$(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE) $$(shell find $$* -name "*.js")
+$(PACKAGED_TEMPLATES): %/$(PACKAGED_TEMPLATE_FILE) : %/$(TEMPLATE_FILE) $$(shell find $$* -name "*.js") | $$(shell grep -Eo -e "ImportValue ([A-Za-z-]+)-$${namespace}::" $$*/$$(TEMPLATE_FILE) | cut -f2 -d' ' | sed -e "s/-$${namespace}:://" | sort -u)
 	@aws cloudformation package \
 		--template-file $< \
 		--output-template-file $@ \
 		--s3-bucket $(DEPLOYMENT_BUCKET)
 
 
-.SECONDEXPANSION:
-.PHONY: $(STACKS)
-$(STACKS): % : %/$(PACKAGED_TEMPLATE_FILE) $$(shell grep -Eo -e "ImportValue ([A-Za-z-]+)-$${namespace}::" $$*/$$(TEMPLATE_FILE) | cut -f2 -d' ' | sed -e "s/-$${namespace}:://" | sort -u)
+$(STACKS): % : %/$(PACKAGED_TEMPLATE_FILE)
 	@[ -z $${namespace} ] && { printf "MUST SET namespace\n" ; exit 1 ; } || exit 0
 	@make cfn-$${action:-deploy} stack_name=$@-$${namespace} template_file=$<
+	@touch $@
