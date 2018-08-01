@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda -> DynamoDB
+
+
+Resources:
+  GetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.get
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
+        - AWSXrayWriteOnlyAccess
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref Table
+      Tracing: Active
+
+  PutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.put
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies: AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref Table
+
+  Table:
+    Type: AWS::Serverless::SimpleTable
+
+Outputs:
+    GetFunctionArn:
+      Description: Get Function Arn
+      Value: !GetAtt GetFunction.Arn
+    PutFunctionArn:
+      Description: Put Function Arn
+      Value: !GetAtt PutFunction.Arn
+    TableArn:
+      Description: Table Arn
+      Value: !GetAtt Table.Arn
+
