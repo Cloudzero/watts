@@ -24,10 +24,12 @@ Resources:
       Handler: index.put
       Runtime: nodejs8.10
       CodeUri: ./
-      Policies: AmazonDynamoDBFullAccess
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
       Environment:
         Variables:
           TABLE_NAME: !Ref Table
+      Tracing: Active
 
   Table:
     Type: AWS::Serverless::SimpleTable
