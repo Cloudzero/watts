@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda -> DynamoDB
+
+
+Resources:
+  PutObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.putObject
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies: AmazonS3FullAccess
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref DestinationBucket
+      Tracing: Active
+
+  DestinationBucket:
+    Type: AWS::S3::Bucket
+
+
+Outputs:
+  PutObjectFunction:
+    Description: Put Object Function
+    Value: !GetAtt PutObjectFunction.Arn
+  DestinationBucket:
+    Description: Destination Bucket Arn
+    Value: !GetAtt DestinationBucket.Arn
+  DestinationBucketName:
+    Description: Destination Bucket Name
+    Value: !Ref DestinationBucket

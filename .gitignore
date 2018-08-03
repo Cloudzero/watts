@@ -1,3 +1,5 @@
 .DS_Store
 packaged-template.yaml
 *.out
+node_modules
+node_modules/
