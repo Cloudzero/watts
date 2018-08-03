@@ -23,6 +23,9 @@ Outputs:
     LambdaArn:
       Description: Lambda Arn
       Value: !GetAtt SnsSubscribedFunction.Arn
-    SNSArn:
+    SNSTopicName:
       Description: SNS Topic Name
       Value: !GetAtt SNSTopicLambdaSource.TopicName
+    SNSTopicArn:
+      Description: SNS Topic Arn
+      Value: !Sub ${SNSTopicLambdaSource}
