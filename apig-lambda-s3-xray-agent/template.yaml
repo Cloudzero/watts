@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: APIG -> Lambda -> S3 with XRay and Agent
+
+
+Resources:
+  PutObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.putObject
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies: AmazonS3FullAccess
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref DestinationBucket
+      Tracing: Active
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
+
+  DestinationBucket:
+    Type: AWS::S3::Bucket
+
+
+Outputs:
+  ApiURL:
+    Description: "API endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/hello"
+  PutObjectFunction:
+    Description: Put Object Function
+    Value: !GetAtt PutObjectFunction.Arn
+  DestinationBucket:
+    Description: Destination Bucket Arn
+    Value: !GetAtt DestinationBucket.Arn
+  DestinationBucketName:
+    Description: Destination Bucket Name
+    Value: !Ref DestinationBucket
