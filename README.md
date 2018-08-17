@@ -1,3 +1,5 @@
+![Watts](https://github.com/Cloudzero/watts/watts.png)
+
 # watts
 Useful Serverless Subsystems Living in the Stacks
 
