@@ -27,7 +27,7 @@ make init
 Deploy a stack via `make` using the directory name as the target, e.g.
 
 ```
-make namespace=test lambda-s3
+make namespace=test bucket=<an S3 bucket for compiled template> lambda-s3
 ```
 
 ### Describe a Stack
