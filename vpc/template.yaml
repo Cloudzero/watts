@@ -2,6 +2,13 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: VPC
 
 
+
+Parameters:
+  Namespace:
+    Type: String
+    Default: live
+    Description: Globally unique grouping identifier.
+
 Resources:
   VPC:
     Type: AWS::EC2::VPC

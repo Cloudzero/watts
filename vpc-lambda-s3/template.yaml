@@ -3,6 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: VPC Lambda -> DynamoDB
 
 
+Parameters:
+  Namespace:
+    Type: String
+    Default: live
+    Description: Globally unique grouping identifier.
+
 Resources:
   PutObjectFunction:
     Type: AWS::Serverless::Function
@@ -18,9 +24,9 @@ Resources:
           BUCKET_NAME: !Ref DestinationBucket
       VpcConfig:
         SecurityGroupIds:
-          - !ImportValue vpc-live:DefaultSecurityGroupId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:DefaultSecurityGroupId
         SubnetIds:
-          - !ImportValue vpc-live:PrivateSubnetAId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:PrivateSubnetAId
 
   DestinationBucket:
     Type: AWS::S3::Bucket
@@ -29,10 +35,10 @@ Resources:
      Type: AWS::EC2::VPCEndpoint
      Properties:
        RouteTableIds:
-         - !ImportValue vpc-live::PrivateRouteTable
-         - !ImportValue vpc-live::PublicRouteTable
+         - Fn::ImportValue: !Sub vpc-${Namespace}::PrivateRouteTable
+         - Fn::ImportValue: !Sub vpc-${Namespace}::PublicRouteTable
        ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
-       VpcId: !ImportValue vpc-live:VPC
+       VpcId: Fn::ImportValue: !Sub vpc-${Namespace}:VPC
 
 
 Outputs:

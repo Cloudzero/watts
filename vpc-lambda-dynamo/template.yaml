@@ -3,6 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: VPC Lambda -> DynamoDB
 
 
+Parameters:
+  Namespace:
+    Type: String
+    Default: live
+    Description: Globally unique grouping identifier.
+
 Resources:
   GetFunction:
     Type: AWS::Serverless::Function
@@ -18,9 +24,9 @@ Resources:
           TABLE_NAME: !Ref Table
       VpcConfig:
         SecurityGroupIds:
-          - !ImportValue vpc-live:DefaultSecurityGroupId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:DefaultSecurityGroupId
         SubnetIds:
-          - !ImportValue vpc-live:PrivateSubnetAId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:PrivateSubnetAId
 
   PutFunction:
     Type: AWS::Serverless::Function
@@ -36,9 +42,9 @@ Resources:
           TABLE_NAME: !Ref Table
       VpcConfig:
         SecurityGroupIds:
-          - !ImportValue vpc-live:DefaultSecurityGroupId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:DefaultSecurityGroupId
         SubnetIds:
-          - !ImportValue vpc-live:PrivateSubnetAId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:PrivateSubnetAId
 
   Table:
     Type: AWS::Serverless::SimpleTable
@@ -47,10 +53,10 @@ Resources:
      Type: AWS::EC2::VPCEndpoint
      Properties:
        RouteTableIds:
-         - !ImportValue vpc-live::PrivateRouteTable
-         - !ImportValue vpc-live::PublicRouteTable
+         - Fn::ImportValue: !Sub vpc-${Namespace}::PrivateRouteTable
+         - Fn::ImportValue: !Sub vpc-${Namespace}::PublicRouteTable
        ServiceName: !Sub com.amazonaws.${AWS::Region}.dynamodb
-       VpcId: !ImportValue vpc-live:VPC
+       VpcId: Fn::ImportValue: !Sub vpc-${Namespace}:VPC
 
 Outputs:
   GetFunctionArn:

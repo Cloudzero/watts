@@ -3,6 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: VPC Lambda -> DynamoDB
 
 
+Parameters:
+  Namespace:
+    Type: String
+    Default: live
+    Description: Globally unique grouping identifier.
+
 Resources:
   PublishFunction:
     Type: AWS::Serverless::Function
@@ -18,9 +24,9 @@ Resources:
           TOPIC_ARN: !Sub ${SNSTopicLambdaDestination}
       VpcConfig:
         SecurityGroupIds:
-          - !ImportValue vpc-live:DefaultSecurityGroupId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:DefaultSecurityGroupId
         SubnetIds:
-          - !ImportValue vpc-live:PrivateSubnetAId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:PrivateSubnetAId
 
   SNSTopicLambdaDestination:
     Type: AWS::SNS::Topic
@@ -31,7 +37,7 @@ Resources:
   #    Properties:
   #      ServiceName: !Sub com.amazonaws.${AWS::Region}.sns
   #      VpcEndpointType: Interface
-  #      VpcId: !ImportValue vpc-live:VPC
+  #      VpcId: Fn::ImportValue: !Sub vpc-${Namespace}:VPC
 
 
 Outputs:

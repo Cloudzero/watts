@@ -2,6 +2,13 @@ AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: VPC APIG -> Lambda
 
+
+Parameters:
+  Namespace:
+    Type: String
+    Default: live
+    Description: Globally unique grouping identifier.
+
 Resources:
   HelloFunction:
     Type: AWS::Serverless::Function
@@ -19,9 +26,9 @@ Resources:
             Method: get
       VpcConfig:
         SecurityGroupIds:
-          - !ImportValue vpc-live:DefaultSecurityGroupId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:DefaultSecurityGroupId
         SubnetIds:
-          - !ImportValue vpc-live:PrivateSubnetAId
+          - Fn::ImportValue: !Sub vpc-${Namespace}:PrivateSubnetAId
 
 Outputs:
     ApiURL:
