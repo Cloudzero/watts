@@ -3,6 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: Lambda -> DynamoDB
 
 
+Parameters:
+  Namespace:
+    Type: String
+    Default: live
+    Description: Globally unique grouping identifier.
+
 Resources:
   GetFunction:
     Type: AWS::Serverless::Function
