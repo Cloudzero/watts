@@ -6,7 +6,7 @@ Resources:
   SnsSubscribedFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: handler.hello
+      Handler: index.hello
       Runtime: nodejs8.10
       CodeUri: ./
       Events:
