@@ -2,11 +2,15 @@
 set -e
 set -x
 
+directory=${0%/*}
+system=${directory#./}
+
 namespace=${1} ; shift
 
 : ${namespace?}
+: ${system?}
 
-stream_name=$(make namespace=live action=describe vpc-kinesis-lambda |
+stream_name=$(make namespace=${namespace} action=describe ${system} |
                  jq -re '.Stacks[0].Outputs | map(select(.Description == "Kinesis Stream Arn")) | .[0].OutputValue' |
                  cut -f2 -d'/')
 

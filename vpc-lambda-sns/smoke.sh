@@ -2,20 +2,31 @@
 set -e
 set -x
 
+directory=${0%/*}
+system=${directory#./}
+
 namespace=${1} ; shift
 
 : ${namespace?}
+: ${system?}
 
 
-# Create Interface VPC Endpoint
+# Set VPC Stack Outputs into Environment
+while read kv ; do
+    eval `echo $kv`
+done < <(make namespace=${namespace} action=describe vpc |
+           jq -re '.Stacks[0].Outputs[] | [.OutputKey, .OutputValue] | join("=")')
+
+# Create Interface VPC Endpoint from VPC Stack Outputs
 aws ec2 create-vpc-endpoint \
-    --vpc-id vpc-07972d12a63be5025 \
+    --vpc-id ${VPC?} \
     --vpc-endpoint-type Interface \
-    --service-name com.amazonaws.us-east-1.sns \
-    --subnet-id subnet-0b2c3a6ac2aa93ea4 \
-    --security-group-id sg-09da676148935aa8d
+    --service-name com.amazonaws.${VpcRegion?}.sns \
+    --subnet-id ${PrivateSubnetAId?} \
+    --security-group-id ${VPCDefaultSecurityGroupId?}
 
-function_arn=$(make namespace=live action=describe vpc-lambda-sns |
+
+function_arn=$(make namespace=${namespace} action=describe ${system} |
                    jq -re '.Stacks[0].Outputs | map(select(.Description == "Publish Function Arn")) | .[0].OutputValue')
 
 : ${function_arn?}

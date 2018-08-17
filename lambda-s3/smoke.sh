@@ -2,11 +2,15 @@
 set -e
 set -x
 
+directory=${0%/*}
+system=${directory#./}
+
 namespace=${1} ; shift
 
 : ${namespace?}
+: ${system?}
 
-function_arn=$(make namespace=live action=describe lambda-s3 |
+function_arn=$(make namespace=${namespace} action=describe ${system} |
                    jq -re '.Stacks[0].Outputs | map(select(.Description == "Put Object Function")) | .[0].OutputValue')
 
 : ${function_arn?}

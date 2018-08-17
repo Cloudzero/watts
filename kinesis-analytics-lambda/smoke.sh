@@ -2,21 +2,21 @@
 set -e
 set -x
 
-script_dir=${0%/*}
-
-: ${script_dir#./}
+directory=${0%/*}
+system=${directory#./}
 
 namespace=${1} ; shift
+
 : ${namespace?}
+: ${system?}
 
-
-stream_name=$(make namespace=live action=describe ${script_dir#./} |
+stream_name=$(make namespace=${namespace} action=describe ${system} |
                  jq -re '.Stacks[0].Outputs | map(select(.Description == "Kinesis Stream Arn")) | .[0].OutputValue' |
                  cut -f2 -d'/')
 : ${stream_name?}
 
 
-app_name=$(make namespace=live action=describe ${script_dir#./} |
+app_name=$(make namespace=${namespace} action=describe ${system} |
                jq -re '.Stacks[0].Outputs | map(select(.Description == "Kinesis Analytics Application Name")) | .[0].OutputValue')
 : ${app_name?}
 

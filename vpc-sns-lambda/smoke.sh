@@ -2,11 +2,15 @@
 set -e
 set -x
 
+directory=${0%/*}
+system=${directory#./}
+
 namespace=${1} ; shift
 
 : ${namespace?}
+: ${system?}
 
-topic_arn=$(make namespace=live action=describe vpc-sns-lambda |
+topic_arn=$(make namespace=${namespace} action=describe ${system} |
                        jq -re '.Stacks[0].Outputs | map(select(.Description == "SNS Topic Arn")) | .[0].OutputValue' )
 
 : ${topic_arn?}

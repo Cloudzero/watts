@@ -2,11 +2,15 @@
 set -e
 set -x
 
+directory=${0%/*}
+system=${directory#./}
+
 namespace=${1} ; shift
 
 : ${namespace?}
+: ${system?}
 
-hello_url=$(make namespace=live action=describe vpc-apig-lambda |
+hello_url=$(make namespace=${namespace} action=describe ${system} |
                 jq -re '.Stacks[0].Outputs | map(select(.Description == "API endpoint URL")) | .[0].OutputValue' )
 
 : ${hello_url?}

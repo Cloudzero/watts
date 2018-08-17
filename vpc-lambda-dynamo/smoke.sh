@@ -2,18 +2,22 @@
 set -e
 set -x
 
+directory=${0%/*}
+system=${directory#./}
+
 namespace=${1} ; shift
 
 : ${namespace?}
+: ${system?}
 
-TABLE_NAME=$(make namespace=live action=describe vpc-lambda-dynamo |
+TABLE_NAME=$(make namespace=${namespace} action=describe ${system} |
                         jq -re '.Stacks[0].Outputs | map(select(.Description == "Table Arn")) | .[0].OutputValue' |
                         cut -f2 -d'/')
 
-put_function_arn=$(make namespace=live action=describe vpc-lambda-dynamo |
+put_function_arn=$(make namespace=${namespace} action=describe ${system} |
                        jq -re '.Stacks[0].Outputs | map(select(.Description == "Put Function Arn")) | .[0].OutputValue' )
 
-get_function_arn=$(make namespace=live action=describe vpc-lambda-dynamo |
+get_function_arn=$(make namespace=${namespace} action=describe ${system} |
                        jq -re '.Stacks[0].Outputs | map(select(.Description == "Get Function Arn")) | .[0].OutputValue' )
 
 : ${TABLE_NAME?}
