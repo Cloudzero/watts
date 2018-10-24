@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: SNS -> Lambda
+
+Parameters:
+  Namespace:
+    Type: String
+    Default: live
+    Description: Globally unique grouping identifier.
+
+Resources:
+  SqsPutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.fillQueue
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt SQSQueue.QueueName
+      Environment:
+        Variables:
+          QUEUE: !Ref SQSQueue
+      Events:
+        Shedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+  SqsSubscribedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.hello
+      Runtime: nodejs8.10
+      CodeUri: ./
+      Events:
+        SQS1:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SQSQueue.Arn
+            BatchSize: 10
+
+  SQSQueue:
+    Type: 'AWS::SQS::Queue'
+
+Outputs:
+    LambdaArn:
+      Description: Lambda Arn
+      Value: !GetAtt SqsSubscribedFunction.Arn
+    SQSQueueUrl:
+      Description: SQS Queue URL
+      Value: !Ref SQSQueue
+    SQSQueueArn:
+      Description: SQS Queue ARN
+      Value: !GetAtt SQSQueue.Arn
